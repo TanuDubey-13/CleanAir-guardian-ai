@@ -32,6 +32,8 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   sendVerification: () => Promise<void>;
+  usingMock: boolean;
+  switchToMockMode: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -92,10 +94,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [usingMock, setUsingMock] = useState<boolean>(isFirebaseMock);
+
+  const switchToMockMode = () => {
+    console.warn("Switching to local mock mode due to Firebase connection error.");
+    setUsingMock(true);
+    
+    // Seed initial mock reports if empty
+    if (!localStorage.getItem('mock_reports')) {
+      localStorage.setItem('mock_reports', JSON.stringify(PRE_POPULATED_REPORTS));
+    }
+    
+    // Load mock user session
+    const mockUser = {
+      uid: 'mock-admin-uid-999',
+      email: 'admin@cleanairguardian.ai',
+      displayName: 'Demo Lead Admin',
+      emailVerified: true,
+      providerData: [{ providerId: 'google.com' }]
+    } as any;
+    
+    const mockProfile: UserProfile = {
+      uid: 'mock-admin-uid-999',
+      email: 'admin@cleanairguardian.ai',
+      displayName: 'Demo Lead Admin',
+      role: 'admin',
+      createdAt: new Date().toISOString(),
+    };
+
+    setUser(mockUser);
+    setProfile(mockProfile);
+    setLoading(false);
+  };
 
   // Sync profile details when auth state changes
   useEffect(() => {
-    if (isFirebaseMock) {
+    if (usingMock) {
       console.log("AuthProvider: Running in LOCAL DEMO MODE.");
       
       // Seed initial mock reports if empty
@@ -117,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           uid: 'mock-admin-uid-999',
           email: 'admin@cleanairguardian.ai',
           displayName: 'Demo Lead Admin',
-          role: 'admin', // Admin by default to let user inspect all views
+          role: 'admin',
           createdAt: new Date().toISOString(),
         };
 
@@ -129,41 +163,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return () => clearTimeout(timer);
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      
-      if (currentUser) {
-        try {
-          const userDocRef = doc(db, 'users', currentUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          
-          if (userDocSnap.exists()) {
-            setProfile(userDocSnap.data() as UserProfile);
-          } else {
-            const fallbackProfile: UserProfile = {
-              uid: currentUser.uid,
-              email: currentUser.email || '',
-              displayName: currentUser.displayName || 'Citizen Guardian',
-              role: 'citizen',
-              createdAt: new Date().toISOString(),
-            };
-            await setDoc(userDocRef, fallbackProfile);
-            setProfile(fallbackProfile);
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        setUser(currentUser);
+        
+        if (currentUser) {
+          try {
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            
+            if (userDocSnap.exists()) {
+              setProfile(userDocSnap.data() as UserProfile);
+            } else {
+              const fallbackProfile: UserProfile = {
+                uid: currentUser.uid,
+                email: currentUser.email || '',
+                displayName: currentUser.displayName || 'Citizen Guardian',
+                role: 'citizen',
+                createdAt: new Date().toISOString(),
+              };
+              await setDoc(userDocRef, fallbackProfile);
+              setProfile(fallbackProfile);
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
           }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
+        } else {
+          setProfile(null);
         }
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    });
+        setLoading(false);
+      }, (error) => {
+        console.error("Auth observer error callback:", error);
+        switchToMockMode();
+      });
 
-    return () => unsubscribe();
-  }, []);
+      return () => unsubscribe();
+    } catch (err) {
+      console.error("Auth listener registration failed, falling back to mock mode:", err);
+      switchToMockMode();
+    }
+  }, [usingMock]);
 
   const loginWithEmail = async (email: string, password: string) => {
-    if (isFirebaseMock) {
+    if (usingMock) {
       await new Promise(resolve => setTimeout(resolve, 800));
       const mockUser = {
         uid: 'mock-admin-uid-999',
@@ -186,7 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const registerWithEmail = async (email: string, password: string, displayName: string): Promise<User> => {
-    if (isFirebaseMock) {
+    if (usingMock) {
       await new Promise(resolve => setTimeout(resolve, 800));
       const mockUser = {
         uid: 'mock-admin-uid-999',
@@ -230,7 +272,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    if (isFirebaseMock) {
+    if (usingMock) {
       await new Promise(resolve => setTimeout(resolve, 800));
       const mockUser = {
         uid: 'mock-admin-uid-999',
@@ -270,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    if (isFirebaseMock) {
+    if (usingMock) {
       setUser(null);
       setProfile(null);
       return;
@@ -279,12 +321,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
-    if (isFirebaseMock) return;
+    if (usingMock) return;
     await sendPasswordResetEmail(auth, email);
   };
 
   const sendVerification = async () => {
-    if (isFirebaseMock) return;
+    if (usingMock) return;
     if (auth.currentUser) {
       await sendEmailVerification(auth.currentUser);
     } else {
@@ -302,7 +344,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginWithGoogle,
       logout,
       resetPassword,
-      sendVerification
+      sendVerification,
+      usingMock,
+      switchToMockMode
     }}>
       {children}
     </AuthContext.Provider>
