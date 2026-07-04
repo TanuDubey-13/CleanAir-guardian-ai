@@ -1,40 +1,48 @@
 # CleanAir Guardian AI - Environmental Monitor & Cleanup Coordinator
 
+[![Deploy Vite site to GitHub Pages](https://github.com/TanuDubey-13/CleanAir-guardian-ai/actions/workflows/deploy.yml/badge.svg)](https://github.com/TanuDubey-13/CleanAir-guardian-ai/actions/workflows/deploy.yml)
+
 CleanAir Guardian AI is a production-quality, AI-powered environmental monitoring and reporting platform that enables citizens to identify, report, and track local pollution hotspots. Built using Google Cloud Platform (Firebase) and Google Gemini AI, it helps communities report incidents instantly while enabling municipal authorities to verify, manage, and resolve waste issues.
+
+### 🔗 [Click Here for the Live Demo Link](https://tanudubey-13.github.io/CleanAir-guardian-ai/)
 
 ---
 
-## 🌟 Features
+## 🌟 Key Features
+
+### ⚡ Frictionless Hackathon Demo Mode
+* **Instant Evaluation**: The live link runs in **Demo Mode** by default. Judges can explore the interactive analytics dashboard, view the live map, submit test reports, and use the admin control panel immediately without being forced to wait for database setup or email validation links.
+* **Full Production-Ready Mode**: To connect to a live database, simply clone the repository and add your Firebase configurations. The app automatically turns off Demo Mode when configuration variables are present.
 
 ### 🔐 Authentication
 * **Google SSO & Email Sign-In**: Quick Google Login alongside secure Email/Password registration.
-* **Email Verification**: Automatic onboarding validation preventing fake citizen accounts.
-* **Session Persistence & Route Protection**: Role-based access validation.
+* **Frictionless Onboarding**: Automatic credentials verification with an option to skip email confirmation in development setups.
+* **Session Persistence & Route Protection**: Role-based access validation (Citizen vs. Administrator dashboards).
 
 ### 📸 Citizen Reporting Flow
 * **Multimodal Uploads**: Drag-and-drop file uploads or direct mobile camera snapshots (`capture="environment"`).
-* **Location Auto-Detection**: Core GPS coordinate detection synced with manual Google Maps pin selector overrides.
-* **Gemini AI Audit**: Dual-mode analysis using Gemini 2.5 Flash that automatically identifies waste category, environmental impact, community health risk, municipal letter draft, and safety tips.
+* **Location Auto-Detection**: Core GPS coordinates parsed directly from the browser context with manual map pin selector overrides.
+* **Gemini AI Audit**: Dual-mode analysis using **Gemini 2.5 Flash** that automatically identifies waste category, environmental impact, community health risk, safety recommendations, and citizen tips.
+* **Municipal Letter Auto-Drafting**: Gemini automatically writes a formal, professional email complaint to city representatives referencing the exact coordinates, category, and severity details.
 
-### 🗺️ Hotspot Visualization Map
-* **Interactive Marker Pins**: Color-coded markers indicating category and severity.
-* **Density Heatmap Layer**: Weighted heatmaps showing pollution density areas.
-* **Activity Metrics & Chart.js**: Live dashboard displaying incident trends and breakdown statistics.
+### 🗺️ Hotspot Visualization Map (Leaflet)
+* **Interactive Marker Pins**: Open-source Leaflet map showing localized hotspots with pulsing, color-coded severity markers (Green = Low, Amber = Medium, Orange = High, Red = Critical).
+* **Detailed popup previews**: Click pins to view incident photos, severity tags, description, and status.
+* **Live Analytics & Chart.js**: Dashboard display of category breakdown doughnut statistics and report logs over time.
 
 ### 👮 Admin Control Console
 * **Spam Moderation**: Reject fake/duplicate submissions.
-* **Incident Workflow**: Verify reports and update statuses to "Resolved" with crew dispatch logs.
-* **Role Permissions**: Change accounts from citizen to administrator scopes directly from the database.
+* **Incident Workflow**: Verify reports and update statuses to "Resolved" with administrative notes.
+* **Role Permissions**: Change accounts from citizen to administrator scopes directly.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Folder Architecture
 
 ```
 src/
 ├── assets/          # Static files & brand graphics
 ├── components/      # Draggable maps, image upload, protected route frames
-├── constants/       # App constants and mock content
 ├── context/         # AuthContext and ThemeContext hooks
 ├── hooks/           # useAuth, useTheme, useGeolocation wrappers
 ├── layouts/         # RootLayout (Navbar shell) and AuthLayout (Login split pane)
@@ -46,11 +54,11 @@ src/
 
 ---
 
-## 🛠️ Installation
+## 🛠️ Installation & Local Setup
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository_url>
+git clone https://github.com/TanuDubey-13/CleanAir-guardian-ai.git
 cd cleanair-guardian-ai
 ```
 
@@ -59,12 +67,12 @@ cd cleanair-guardian-ai
 npm install --legacy-peer-deps
 ```
 
-### 3. Setup Environment variables
+### 3. Setup Environment Variables
 Copy the template environment file:
 ```bash
 cp .env.example .env
 ```
-Open `.env` and fill in your respective API keys.
+Open `.env` and fill in your respective Firebase and Gemini API keys.
 
 ### 4. Run Development Server
 ```bash
@@ -95,30 +103,9 @@ To connect your project to Firebase:
 
 ---
 
-## 🌎 Deployment (Firebase Hosting)
+## 🌎 Deployment (GitHub Pages)
 
-Deploy the web application to public servers using Firebase CLI:
-```bash
-# 1. Install Firebase CLI globally (if not already installed)
-npm install -g firebase-tools
-
-# 2. Login to Google Firebase account
-firebase login
-
-# 3. Initialize Hosting project (select existing project)
-firebase init hosting
-
-# Choose 'dist' as the public directory, and 'Yes' for Single Page App redirect.
-# 4. Compile React typescript production bundle
-npm run build
-
-# 5. Deploy build to production servers
-firebase deploy --only hosting
-```
-
----
-
-## 🔮 Future Scope
-* **PWA Offline Support**: Enable offline reporting that caches coordinates and images locally and syncs them once internet access is restored.
-* **Automatic Municipal Sync**: Connect to existing city maintenance pipelines (e.g. 311 systems) via automated webhooks.
-* **Citizen Leaderboard**: Reward active community cleanup volunteers with points and green badges.
+The project is configured to automatically deploy to GitHub Pages on every push to the `main` branch via GitHub Actions:
+1. Go to your repository settings on GitHub.
+2. Navigate to **Pages** > **Build and deployment** > **Source** and select **`GitHub Actions`**.
+3. Any push to `main` will compile and host the app in the cloud!
