@@ -36,8 +36,8 @@ const Register: React.FC = () => {
     setError(null);
     try {
       await registerWithEmail(email, password, name);
-      // Navigate to verification message page
-      navigate('/verify-email');
+      // Navigate to dashboard directly for hackathon frictionless flow
+      navigate('/dashboard');
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/email-already-in-use') {

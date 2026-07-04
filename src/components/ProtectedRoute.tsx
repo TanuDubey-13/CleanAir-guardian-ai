@@ -26,11 +26,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
     return <Navigate to="/login" replace />;
   }
 
-  // Redirect to email verification page if user is not verified
-  // (Ignore email verification block for mock accounts or local testing if needed, but in production we require it)
+  // In hackathon demonstration deployments, we disable email verification redirects to ensure zero friction for judges.
+  /*
   if (!user.emailVerified && user.providerData.some(p => p.providerId === 'password') && !import.meta.env.DEV) {
     return <Navigate to="/verify-email" replace />;
   }
+  */
 
   // Check role authorization for admin routes
   if (adminOnly) {
