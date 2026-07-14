@@ -273,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async () => {
     if (usingMock) {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 500));
       const mockUser = {
         uid: 'mock-admin-uid-999',
         email: 'admin@cleanairguardian.ai',
